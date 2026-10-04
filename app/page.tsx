@@ -78,7 +78,7 @@ const ScratchCard: React.FC<ScratchCardProps> = ({ onScratchComplete, resetTrigg
       
       const clearedPercentage = (clearPixels / totalPixels) * 100;
       
-      if (clearedPercentage > 85) {
+      if (clearedPercentage > 78) {
         isDone.current = true;
         onScratchComplete();
       }
@@ -133,9 +133,8 @@ export default function TeacherGiftApp() {
     "Сен әлемдегі ең әдемі мұғалімсің! 😍",
     "Конспектілер күте тұрады, өзіңе жақсылап демалыс бер! ☕️",
     "Сенің күлкің кез келген қиын сабақты жеңілдетеді! ✨",
-    "Оқушыларың сендей апайы бар екеніне қуанатын болады! 🌸",
     "Бүгін сенің күнің! Күлімдеп жүр! 💖",
-    "Сен өте ақылдысың, бәрін беске жабасың! 📚"
+    "Сен өте ақылдысың, бәрін бұйырса өтесің! 🤍"
   ];
 
 // Барлық 21 фотоны браузер жадына алдын ала жүктеп алу (Preload)
@@ -332,10 +331,10 @@ export default function TeacherGiftApp() {
                 <div className="w-10 h-10 bg-pink-500/20 rounded-full flex items-center justify-center text-pink-400 border border-pink-500/30">
                   <Volume2 className="w-5 h-5" />
                 </div>
-                <div>
+                {/*<div>
                   <p className="font-medium text-slate-200 text-sm">Жеке тілек</p>
                   <p className="text-xs text-slate-400">0:15</p>
-                </div>
+                </div>*/}
               </div>
               <button 
                 onClick={toggleAudio}
