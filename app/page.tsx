@@ -3,17 +3,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Heart, Sparkles, Coffee, Volume2 } from 'lucide-react';
 
-// 1. СКРЕТЧ КАРТАНЫ БӨЛЕК ШЫҒАРДЫҚ (Бұлыңғыр болып өзінен-өзі жабылып қалмауы үшін)
-const ScratchCard = ({ onScratchComplete, resetTrigger }) => {
-  const canvasRef = useRef(null);
+// Скретч картаның типтері
+interface ScratchCardProps {
+  onScratchComplete: () => void;
+  resetTrigger: number;
+}
+
+const ScratchCard = ({ onScratchComplete, resetTrigger }: ScratchCardProps) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const moveCount = useRef(0);
   const isDone = useRef(false);
 
-  // Картаны бастапқы (жабық) күйіне келтіретін функция
   const initCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     
     ctx.globalCompositeOperation = 'source-over'; 
     ctx.fillStyle = '#334155';
@@ -29,19 +34,19 @@ const ScratchCard = ({ onScratchComplete, resetTrigger }) => {
     isDone.current = false;
   };
 
-  // Басқа батырма (аудио/сөз) басылғанда картаны қайта жабу
   useEffect(() => {
     initCanvas();
   }, [resetTrigger]);
 
-  const handleScratch = (e) => {
+  const handleScratch = (e: any) => {
     const canvas = canvasRef.current;
     if (!canvas || isDone.current) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     const rect = canvas.getBoundingClientRect();
     
-    const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-    const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+    const clientX = e.type?.includes('touch') ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type?.includes('touch') ? e.touches[0].clientY : e.clientY;
     
     const x = clientX - rect.left;
     const y = clientY - rect.top;
@@ -66,7 +71,6 @@ const ScratchCard = ({ onScratchComplete, resetTrigger }) => {
       
       const clearedPercentage = (clearPixels / totalPixels) * 100;
       
-      // Тек 88-90% өшкен кезде ғана жүректер шашылады (до конца сүрткенде)
       if (clearedPercentage > 88) {
         isDone.current = true;
         onScratchComplete();
@@ -91,6 +95,14 @@ const ScratchCard = ({ onScratchComplete, resetTrigger }) => {
   );
 };
 
+// Экранды басқан кезде шығатын эмодзилердің типі
+interface ClickEffect {
+  id: number;
+  x: number;
+  y: number;
+  emoji: string;
+}
+
 export default function TeacherGiftApp() {
   const [stage, setStage] = useState(0); 
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -99,11 +111,14 @@ export default function TeacherGiftApp() {
   const [showSecret, setShowSecret] = useState(false);
   const [secretTab, setSecretTab] = useState('video'); 
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0); 
-  const audioRef = useRef(null);
+  
+  // Аудио үшін тип көрсетілді
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const [clicks, setClicks] = useState([]);
+  // Массивке тип берілді
+  const [clicks, setClicks] = useState<ClickEffect[]>([]);
   const [isScratched, setIsScratched] = useState(false);
-  const [resetScratchCount, setResetScratchCount] = useState(0); // Картаны қайта жабу триггері
+  const [resetScratchCount, setResetScratchCount] = useState(0);
 
   const hour = new Date().getHours();
   let greeting = 'Қайырлы күн';
@@ -136,7 +151,7 @@ export default function TeacherGiftApp() {
   }, [stage]);
 
   useEffect(() => {
-    let photoInterval;
+    let photoInterval: any;
     if (showSecret && secretTab === 'photos') {
       photoInterval = setInterval(() => {
         setCurrentPhotoIndex((prev) => (prev + 1) % 21);
@@ -147,7 +162,7 @@ export default function TeacherGiftApp() {
     return () => clearInterval(photoInterval);
   }, [showSecret, secretTab]);
 
-  const handleScreenClick = (e) => {
+  const handleScreenClick = (e: any) => {
     const newClick = {
       id: Date.now() + Math.random(),
       x: e.clientX,
@@ -158,19 +173,16 @@ export default function TeacherGiftApp() {
     setTimeout(() => setClicks((prev) => prev.filter((c) => c.id !== newClick.id)), 1000);
   };
 
-  const handleAntiStress = (e) => {
+  const handleAntiStress = (e: any) => {
     e.stopPropagation();
-    // Жаңа тілек басқанда скретч-картаны қайтадан жауып, жүректерді тоқтату
     setResetScratchCount(prev => prev + 1);
     setIsScratched(false);
-
     const random = Math.floor(Math.random() * complimentsList.length);
     setCompliment(complimentsList[random]);
   };
 
-  const toggleAudio = (e) => {
+  const toggleAudio = (e: any) => {
     e.stopPropagation();
-    // Аудио қосқанда/өшіргенде скретч-картаны қайтадан жауып, жүректерді тоқтату
     setResetScratchCount(prev => prev + 1);
     setIsScratched(false);
 
@@ -289,7 +301,6 @@ export default function TeacherGiftApp() {
               </h1>
             </div>
 
-            {/* Скретч карта (Жабылу триггерімен бірге) */}
             <ScratchCard 
               onScratchComplete={() => setIsScratched(true)} 
               resetTrigger={resetScratchCount} 
@@ -342,7 +353,7 @@ export default function TeacherGiftApp() {
 
       {showSecret && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4">
-          <div className="relative max-w-sm w-full bg-slate-900 border border-pink-500/50 rounded-3xl p-5 text-center flex flex-col items-center space-y-4">
+          <div className="relative max-w-sm w-full bg-slate-900 border border-pink-500/50 rounded-3xl p-5 text-center flex flex-col items-center space-y-4 shadow-[0_0_50px_rgba(236,72,153,0.4)]">
             
             <h3 className="text-xl font-bold text-pink-400">💖 Арнайы Сюрприз! 💖</h3>
 
@@ -365,7 +376,7 @@ export default function TeacherGiftApp() {
               </button>
             </div>
 
-            <div className="w-full max-w-[260px] aspect-[9/16] rounded-2xl overflow-hidden border border-pink-500/40 bg-slate-950 flex items-center justify-center relative">
+            <div className="w-full max-w-[260px] aspect-[9/16] rounded-2xl overflow-hidden border border-pink-500/40 bg-slate-950 flex items-center justify-center relative shadow-[0_0_20px_rgba(236,72,153,0.3)]">
               {secretTab === 'video' ? (
                 <video src="/Ayau.mp4" autoPlay loop controls className="w-full h-full object-cover" />
               ) : (
