@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Heart, Sparkles, Coffee, Volume2 } from 'lucide-react';
 
-// Скретч картаның типтері
 interface ScratchCardProps {
   onScratchComplete: () => void;
   resetTrigger: number;
@@ -38,7 +37,7 @@ const ScratchCard = ({ onScratchComplete, resetTrigger }: ScratchCardProps) => {
     initCanvas();
   }, [resetTrigger]);
 
-  const handleScratch = (e: any) => {
+  const handleScratch = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement> | any) => {
     const canvas = canvasRef.current;
     if (!canvas || isDone.current) return;
     const ctx = canvas.getContext('2d');
@@ -95,7 +94,6 @@ const ScratchCard = ({ onScratchComplete, resetTrigger }: ScratchCardProps) => {
   );
 };
 
-// Экранды басқан кезде шығатын эмодзилердің типі
 interface ClickEffect {
   id: number;
   x: number;
@@ -112,10 +110,8 @@ export default function TeacherGiftApp() {
   const [secretTab, setSecretTab] = useState('video'); 
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0); 
   
-  // Аудио үшін тип көрсетілді
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Массивке тип берілді
   const [clicks, setClicks] = useState<ClickEffect[]>([]);
   const [isScratched, setIsScratched] = useState(false);
   const [resetScratchCount, setResetScratchCount] = useState(0);
@@ -162,18 +158,18 @@ export default function TeacherGiftApp() {
     return () => clearInterval(photoInterval);
   }, [showSecret, secretTab]);
 
-  const handleScreenClick = (e: any) => {
+  const handleScreenClick = (e: React.MouseEvent<HTMLDivElement> | any) => {
     const newClick = {
       id: Date.now() + Math.random(),
       x: e.clientX,
       y: e.clientY,
-      emoji: ['❤️', '💗', '🤍'][Math.floor(Math.random() * 3)]
+      emoji: ['💖', '🤍', '💗'][Math.floor(Math.random() * 3)]
     };
     setClicks((prev) => [...prev, newClick]);
     setTimeout(() => setClicks((prev) => prev.filter((c) => c.id !== newClick.id)), 1000);
   };
 
-  const handleAntiStress = (e: any) => {
+  const handleAntiStress = (e: React.MouseEvent<HTMLButtonElement> | any) => {
     e.stopPropagation();
     setResetScratchCount(prev => prev + 1);
     setIsScratched(false);
@@ -181,7 +177,7 @@ export default function TeacherGiftApp() {
     setCompliment(complimentsList[random]);
   };
 
-  const toggleAudio = (e: any) => {
+  const toggleAudio = (e: React.MouseEvent<HTMLButtonElement> | any) => {
     e.stopPropagation();
     setResetScratchCount(prev => prev + 1);
     setIsScratched(false);
@@ -238,7 +234,7 @@ export default function TeacherGiftApp() {
                 animationDelay: `${Math.random() * 1.5}s`,
               }}
             >
-              {['❤️', '💗', '🤍', '💖'][Math.floor(Math.random() * 4)]}
+              {['💖', '💕', '🤍', '💖'][Math.floor(Math.random() * 4)]}
             </div>
           ))}
         </div>
