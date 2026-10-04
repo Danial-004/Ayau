@@ -210,10 +210,17 @@ export default function TeacherGiftApp() {
   };
 
   return (
+    
     <div 
       className="min-h-screen bg-[#020617] text-slate-100 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans"
       onClick={handleScreenClick}
     >
+      {/* Сайт ашылған бетте видео мен аудионы жасырын жүктеп алу (Лездік ашылу үшін) */}
+      <div className="hidden">
+        <video src="/Ayau.mp4" preload="auto" />
+        <audio src="/audio.mp3" preload="auto" />
+      </div>
+
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes floatUp {
           0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
