@@ -397,16 +397,34 @@ export default function TeacherGiftApp() {
               </button>
             </div>
 
-            <div className="w-full max-w-[260px] aspect-[9/16] rounded-2xl overflow-hidden border border-pink-500/40 bg-slate-950 flex items-center justify-center relative shadow-[0_0_20px_rgba(236,72,153,0.3)]">
+<div className="w-full max-w-[260px] aspect-[9/16] rounded-2xl overflow-hidden border border-pink-500/40 bg-slate-950 flex items-center justify-center relative shadow-[0_0_20px_rgba(236,72,153,0.3)]">
               {secretTab === 'video' ? (
-                <video src="/Ayau.mp4" autoPlay loop controls className="w-full h-full object-cover" />
+                <video 
+                  src="/Ayau.mp4" 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  controls 
+                  className="w-full h-full object-cover" 
+                />
               ) : (
-                <>
-                  <img src={`/photos/${currentPhotoIndex + 1}.png`} alt={`Фото ${currentPhotoIndex + 1}`} className="w-full h-full object-cover" />
-                  <div className="absolute bottom-2 right-2 bg-black/60 px-2.5 py-1 rounded-full text-[10px] text-pink-300 border border-pink-500/30">
+                <div className="w-full h-full relative">
+                  {/* 21 фотоны алдын ала жүктеп, бір-бірінің үстіне қоямыз (телефон қатпай, лезде ауысуы үшін) */}
+                  {Array.from({ length: 21 }).map((_, idx) => (
+                    <img
+                      key={idx}
+                      src={`/photos/${idx + 1}.png`}
+                      alt={`Фото ${idx + 1}`}
+                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                        idx === currentPhotoIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                      }`}
+                    />
+                  ))}
+                  <div className="absolute bottom-2 right-2 bg-black/60 px-2.5 py-1 rounded-full text-[10px] text-pink-300 border border-pink-500/30 z-20">
                     {currentPhotoIndex + 1} / 21
                   </div>
-                </>
+                </div>
               )}
             </div>
 
