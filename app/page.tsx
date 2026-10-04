@@ -1,69 +1,394 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Pause, Heart, Sparkles, Coffee, Volume2 } from 'lucide-react';
+
+// 1. СКРЕТЧ КАРТАНЫ БӨЛЕК ШЫҒАРДЫҚ (Бұлыңғыр болып өзінен-өзі жабылып қалмауы үшін)
+const ScratchCard = ({ onScratchComplete, resetTrigger }) => {
+  const canvasRef = useRef(null);
+  const moveCount = useRef(0);
+  const isDone = useRef(false);
+
+  // Картаны бастапқы (жабық) күйіне келтіретін функция
+  const initCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    ctx.globalCompositeOperation = 'source-over'; 
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillStyle = '#f472b6';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Тілекті оқу үшін осы жерді сүрт ✨', canvas.width / 2, canvas.height / 2);
+    
+    moveCount.current = 0;
+    isDone.current = false;
+  };
+
+  // Басқа батырма (аудио/сөз) басылғанда картаны қайта жабу
+  useEffect(() => {
+    initCanvas();
+  }, [resetTrigger]);
+
+  const handleScratch = (e) => {
+    const canvas = canvasRef.current;
+    if (!canvas || isDone.current) return;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    
+    const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+    
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.fill();
+
+    moveCount.current += 1;
+    
+    if (moveCount.current % 15 === 0) {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let clearPixels = 0;
+      const totalPixels = canvas.width * canvas.height;
+      
+      for (let i = 3; i < imageData.data.length; i += 4) {
+        if (imageData.data[i] < 128) {
+          clearPixels++;
+        }
+      }
+      
+      const clearedPercentage = (clearPixels / totalPixels) * 100;
+      
+      // Тек 88-90% өшкен кезде ғана жүректер шашылады (до конца сүрткенде)
+      if (clearedPercentage > 88) {
+        isDone.current = true;
+        onScratchComplete();
+      }
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="relative w-full max-w-md h-48 mx-auto rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center p-6 border border-pink-500/40 shadow-[0_0_20px_rgba(236,72,153,0.2)] text-center">
+      <p className="text-pink-300 font-medium leading-relaxed px-2">
+        Мұғалімдер күнімен! 🍂 Оқу мен сессиялар кейде шаршатса да, ешқашан берілме. Сенен болашақта оқушылары қатты жақсы көретін, ең мейірімді әрі ең мықты мұғалім шығатынына сенімдімін! 💖
+      </p>
+      <canvas
+        ref={canvasRef}
+        width={400}
+        height={200}
+        className="absolute top-0 left-0 w-full h-full cursor-pointer touch-none"
+        onMouseMove={handleScratch}
+        onTouchMove={handleScratch}
+      />
+    </div>
+  );
+};
+
+export default function TeacherGiftApp() {
+  const [stage, setStage] = useState(0); 
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [compliment, setCompliment] = useState("Шаршаған кезде осында бас 🪄");
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showSecret, setShowSecret] = useState(false);
+  const [secretTab, setSecretTab] = useState('video'); 
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0); 
+  const audioRef = useRef(null);
+
+  const [clicks, setClicks] = useState([]);
+  const [isScratched, setIsScratched] = useState(false);
+  const [resetScratchCount, setResetScratchCount] = useState(0); // Картаны қайта жабу триггері
+
+  const hour = new Date().getHours();
+  let greeting = 'Қайырлы күн';
+  if (hour < 12) greeting = 'Қайырлы таң';
+  else if (hour > 18) greeting = 'Қайырлы кеш';
+
+  const complimentsList = [
+    "Сен әлемдегі ең әдемі мұғалімсің! 😍",
+    "Конспектілер күте тұрады, өзіңе жақсылап демалыс бер! ☕️",
+    "Сенің күлкің кез келген қиын сабақты жеңілдетеді! ✨",
+    "Оқушыларың сендей апайы бар екеніне қуанатын болады! 🌸",
+    "Бүгін сенің күнің! Күлімдеп жүр! 💖",
+    "Сен өте ақылдысың, бәрін беске жабасың! 📚"
+  ];
+
+  useEffect(() => {
+    if (stage === 0) {
+      const interval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setTimeout(() => setStage(1), 800);
+            return 100;
+          }
+          return prev + 3;
+        });
+      }, 40);
+      return () => clearInterval(interval);
+    }
+  }, [stage]);
+
+  useEffect(() => {
+    let photoInterval;
+    if (showSecret && secretTab === 'photos') {
+      photoInterval = setInterval(() => {
+        setCurrentPhotoIndex((prev) => (prev + 1) % 21);
+      }, 420);
+    } else {
+      setCurrentPhotoIndex(0);
+    }
+    return () => clearInterval(photoInterval);
+  }, [showSecret, secretTab]);
+
+  const handleScreenClick = (e) => {
+    const newClick = {
+      id: Date.now() + Math.random(),
+      x: e.clientX,
+      y: e.clientY,
+      emoji: ['❤️', '💗', '🤍'][Math.floor(Math.random() * 3)]
+    };
+    setClicks((prev) => [...prev, newClick]);
+    setTimeout(() => setClicks((prev) => prev.filter((c) => c.id !== newClick.id)), 1000);
+  };
+
+  const handleAntiStress = (e) => {
+    e.stopPropagation();
+    // Жаңа тілек басқанда скретч-картаны қайтадан жауып, жүректерді тоқтату
+    setResetScratchCount(prev => prev + 1);
+    setIsScratched(false);
+
+    const random = Math.floor(Math.random() * complimentsList.length);
+    setCompliment(complimentsList[random]);
+  };
+
+  const toggleAudio = (e) => {
+    e.stopPropagation();
+    // Аудио қосқанда/өшіргенде скретч-картаны қайтадан жауып, жүректерді тоқтату
+    setResetScratchCount(prev => prev + 1);
+    setIsScratched(false);
+
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(() => {});
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  return (
+    <div 
+      className="min-h-screen bg-[#020617] text-slate-100 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans"
+      onClick={handleScreenClick}
+    >
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes floatUp {
+          0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+          100% { transform: translate(-50%, -150px) scale(1.5); opacity: 0; }
+        }
+        .click-animation {
+          animation: floatUp 1s ease-out forwards;
+          pointer-events: none;
+        }
+        @keyframes fallDown {
+          0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+        .confetti-fall {
+          animation: fallDown linear forwards;
+          pointer-events: none;
+        }
+      `}} />
+
+      {clicks.map((click) => (
+        <div key={click.id} className="fixed z-50 text-2xl click-animation" style={{ left: click.x, top: click.y }}>
+          {click.emoji}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+      ))}
+
+      {isScratched && (
+        <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
+          {Array.from({ length: 60 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute text-2xl confetti-fall"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `-5%`,
+                animationDuration: `${Math.random() * 3 + 2}s`,
+                animationDelay: `${Math.random() * 1.5}s`,
+              }}
+            >
+              {['❤️', '💗', '🤍', '💖'][Math.floor(Math.random() * 4)]}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-purple-950/30 to-[#020617]" />
+        {Array.from({ length: 30 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute bg-white rounded-full animate-pulse"
+            style={{
+              top: `${(i * 19) % 100}%`,
+              left: `${(i * 27) % 100}%`,
+              width: `${(i % 3) + 2}px`,
+              height: `${(i % 3) + 2}px`,
+              opacity: (i % 4) * 0.2 + 0.3,
+              boxShadow: '0 0 10px #f472b6',
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10 w-full flex flex-col items-center justify-center">
+        {stage === 0 && (
+          <div className="flex flex-col items-center space-y-4">
+            <Heart className="w-12 h-12 text-pink-500 animate-pulse drop-shadow-[0_0_15px_#ec4899]" />
+            <h2 className="text-lg font-medium text-pink-300 text-center">
+              {loadingProgress < 100 ? 'Әлемдегі ең сүйкімді болашақ мұғалімді іздеу...' : 'Табылды! 🌸'}
+            </h2>
+            <div className="w-64 h-3 bg-slate-900 rounded-full overflow-hidden border border-pink-500/30">
+              <div className="h-full bg-gradient-to-r from-pink-500 to-purple-500 transition-all duration-300" style={{ width: `${loadingProgress}%` }} />
+            </div>
+          </div>
+        )}
+
+        {stage === 1 && (
+          <div className="max-w-md w-full bg-slate-900/90 backdrop-blur-xl p-8 rounded-3xl border border-pink-500/40 text-center z-10">
+            <h2 className="text-2xl font-bold text-pink-400 mb-4">Кішкене тест 👩🏻‍🏫</h2>
+            <p className="text-base text-slate-300 mb-6">Болашақта оқушың дәптерін ұмытып келсе, не істейсің?</p>
+            <div className="space-y-3">
+              {['Басыңды ұмытып келмедің бе? 🧐', 'Ештеңе етпейді, мә, мына параққа жаз 😇', 'Күнделікке екі! Ата-анаңды шақыр! 😈'].map((answer, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => { e.stopPropagation(); setStage(2); }}
+                  className="w-full p-4 bg-slate-800/80 hover:bg-pink-950/60 text-pink-200 border border-pink-500/30 rounded-xl transition-all font-medium text-sm text-left shadow-md cursor-pointer"
+                >
+                  {answer}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {stage === 2 && (
+          <div className="w-full max-w-md flex flex-col items-center space-y-6 pb-10 z-10">
+            <div className="text-center space-y-2 mt-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-pink-400">
+                {greeting}, болашақ маман! <Coffee className="inline w-7 h-7 pb-1 text-pink-300" />
+              </h1>
+            </div>
+
+            {/* Скретч карта (Жабылу триггерімен бірге) */}
+            <ScratchCard 
+              onScratchComplete={() => setIsScratched(true)} 
+              resetTrigger={resetScratchCount} 
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+            <div className="w-full bg-slate-900/90 backdrop-blur-md p-4 rounded-2xl border border-pink-500/30 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-pink-500/20 rounded-full flex items-center justify-center text-pink-400 border border-pink-500/30">
+                  <Volume2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-medium text-slate-200 text-sm">Жеке тілек</p>
+                  <p className="text-xs text-slate-400">0:15</p>
+                </div>
+              </div>
+              <button 
+                onClick={toggleAudio}
+                className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full flex items-center justify-center hover:scale-105 transition-all cursor-pointer"
+              >
+                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-1" />}
+              </button>
+              <audio ref={audioRef} src="/your-voice-message.mp3" onEnded={() => setIsPlaying(false)} />
+            </div>
+
+            <div className="w-full flex flex-col items-center mt-2">
+              <button
+                onClick={handleAntiStress}
+                className="w-full py-4 px-6 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-2xl font-medium hover:scale-[1.02] transition-all flex items-center justify-center space-x-2 border border-pink-400/30 cursor-pointer"
+              >
+                <Sparkles className="w-5 h-5 text-yellow-300 animate-spin" />
+                <span>{compliment === "Шаршаған кезде осында бас 🪄" ? compliment : "Тағы бас!"}</span>
+              </button>
+              {compliment !== "Шаршаған кезде осында бас 🪄" && (
+                <p className="mt-4 text-center text-base font-medium text-pink-300 animate-bounce">
+                  {compliment}
+                </p>
+              )}
+            </div>
+
+            <button 
+              onClick={(e) => { e.stopPropagation(); setShowSecret(true); }}
+              className="mt-4 opacity-60 hover:opacity-100 transition-opacity cursor-pointer text-xs text-pink-300 flex items-center space-x-1"
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>Құпия сюрприз ✨</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showSecret && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4">
+          <div className="relative max-w-sm w-full bg-slate-900 border border-pink-500/50 rounded-3xl p-5 text-center flex flex-col items-center space-y-4">
+            
+            <h3 className="text-xl font-bold text-pink-400">💖 Арнайы Сюрприз! 💖</h3>
+
+            <div className="flex space-x-2 bg-slate-950 p-1 rounded-xl border border-pink-500/30 w-full">
+              <button
+                onClick={() => setSecretTab('video')}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  secretTab === 'video' ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 'text-slate-400'
+                }`}
+              >
+                📹 Видео
+              </button>
+              <button
+                onClick={() => setSecretTab('photos')}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  secretTab === 'photos' ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 'text-slate-400'
+                }`}
+              >
+                📸 Фото
+              </button>
+            </div>
+
+            <div className="w-full max-w-[260px] aspect-[9/16] rounded-2xl overflow-hidden border border-pink-500/40 bg-slate-950 flex items-center justify-center relative">
+              {secretTab === 'video' ? (
+                <video src="/Ayau.mp4" autoPlay loop controls className="w-full h-full object-cover" />
+              ) : (
+                <>
+                  <img src={`/photos/${currentPhotoIndex + 1}.png`} alt={`Фото ${currentPhotoIndex + 1}`} className="w-full h-full object-cover" />
+                  <div className="absolute bottom-2 right-2 bg-black/60 px-2.5 py-1 rounded-full text-[10px] text-pink-300 border border-pink-500/30">
+                    {currentPhotoIndex + 1} / 21
+                  </div>
+                </>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowSecret(false)}
+              className="py-2.5 px-6 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl font-medium hover:scale-105 transition-all cursor-pointer text-sm"
+            >
+              Жабу ✖
+            </button>
+
+            {secretTab === 'photos' && <audio src="/audio.mp3" autoPlay loop />}
+          </div>
         </div>
-      </main>
+      )}
     </div>
   );
 }
