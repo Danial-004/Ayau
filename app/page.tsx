@@ -8,10 +8,10 @@ interface ScratchCardProps {
   resetTrigger: number;
 }
 
-const ScratchCard = ({ onScratchComplete, resetTrigger }: ScratchCardProps) => {
+const ScratchCard: React.FC<ScratchCardProps> = ({ onScratchComplete, resetTrigger }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const moveCount = useRef(0);
-  const isDone = useRef(false);
+  const moveCount = useRef<number>(0);
+  const isDone = useRef<boolean>(false);
 
   const initCanvas = () => {
     const canvas = canvasRef.current;
@@ -37,15 +37,23 @@ const ScratchCard = ({ onScratchComplete, resetTrigger }: ScratchCardProps) => {
     initCanvas();
   }, [resetTrigger]);
 
-  const handleScratch = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement> | any) => {
+  const handleScratch = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas || isDone.current) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const rect = canvas.getBoundingClientRect();
     
-    const clientX = e.type?.includes('touch') ? e.touches[0].clientX : e.clientX;
-    const clientY = e.type?.includes('touch') ? e.touches[0].clientY : e.clientY;
+    let clientX = 0;
+    let clientY = 0;
+
+    if ('touches' in e && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else if ('clientX' in e) {
+      clientX = (e as React.MouseEvent<HTMLCanvasElement>).clientX;
+      clientY = (e as React.MouseEvent<HTMLCanvasElement>).clientY;
+    }
     
     const x = clientX - rect.left;
     const y = clientY - rect.top;
@@ -102,26 +110,26 @@ interface ClickEffect {
 }
 
 export default function TeacherGiftApp() {
-  const [stage, setStage] = useState(0); 
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [compliment, setCompliment] = useState("Шаршаған кезде осында бас 🪄");
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showSecret, setShowSecret] = useState(false);
-  const [secretTab, setSecretTab] = useState('video'); 
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0); 
+  const [stage, setStage] = useState<number>(0); 
+  const [loadingProgress, setLoadingProgress] = useState<number>(0);
+  const [compliment, setCompliment] = useState<string>("Шаршаған кезде осында бас 🪄");
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [showSecret, setShowSecret] = useState<boolean>(false);
+  const [secretTab, setSecretTab] = useState<'video' | 'photos'>('video'); 
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0); 
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [clicks, setClicks] = useState<ClickEffect[]>([]);
-  const [isScratched, setIsScratched] = useState(false);
-  const [resetScratchCount, setResetScratchCount] = useState(0);
+  const [isScratched, setIsScratched] = useState<boolean>(false);
+  const [resetScratchCount, setResetScratchCount] = useState<number>(0);
 
   const hour = new Date().getHours();
   let greeting = 'Қайырлы күн';
   if (hour < 12) greeting = 'Қайырлы таң';
   else if (hour > 18) greeting = 'Қайырлы кеш';
 
-  const complimentsList = [
+  const complimentsList: string[] = [
     "Сен әлемдегі ең әдемі мұғалімсің! 😍",
     "Конспектілер күте тұрады, өзіңе жақсылап демалыс бер! ☕️",
     "Сенің күлкің кез келген қиын сабақты жеңілдетеді! ✨",
@@ -133,7 +141,7 @@ export default function TeacherGiftApp() {
   useEffect(() => {
     if (stage === 0) {
       const interval = setInterval(() => {
-        setLoadingProgress((prev) => {
+        setLoadingProgress((prev: number) => {
           if (prev >= 100) {
             clearInterval(interval);
             setTimeout(() => setStage(1), 800);
@@ -147,10 +155,10 @@ export default function TeacherGiftApp() {
   }, [stage]);
 
   useEffect(() => {
-    let photoInterval: any;
+    let photoInterval: ReturnType<typeof setInterval>;
     if (showSecret && secretTab === 'photos') {
       photoInterval = setInterval(() => {
-        setCurrentPhotoIndex((prev) => (prev + 1) % 21);
+        setCurrentPhotoIndex((prev: number) => (prev + 1) % 21);
       }, 420);
     } else {
       setCurrentPhotoIndex(0);
@@ -158,28 +166,30 @@ export default function TeacherGiftApp() {
     return () => clearInterval(photoInterval);
   }, [showSecret, secretTab]);
 
-  const handleScreenClick = (e: React.MouseEvent<HTMLDivElement> | any) => {
-    const newClick = {
+  const handleScreenClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const newClick: ClickEffect = {
       id: Date.now() + Math.random(),
       x: e.clientX,
       y: e.clientY,
       emoji: ['💖', '🤍', '💗'][Math.floor(Math.random() * 3)]
     };
-    setClicks((prev) => [...prev, newClick]);
-    setTimeout(() => setClicks((prev) => prev.filter((c) => c.id !== newClick.id)), 1000);
+    setClicks((prev: ClickEffect[]) => [...prev, newClick]);
+    setTimeout(() => {
+      setClicks((prev: ClickEffect[]) => prev.filter((c: ClickEffect) => c.id !== newClick.id));
+    }, 1000);
   };
 
-  const handleAntiStress = (e: React.MouseEvent<HTMLButtonElement> | any) => {
+  const handleAntiStress = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    setResetScratchCount(prev => prev + 1);
+    setResetScratchCount((prev: number) => prev + 1);
     setIsScratched(false);
     const random = Math.floor(Math.random() * complimentsList.length);
     setCompliment(complimentsList[random]);
   };
 
-  const toggleAudio = (e: React.MouseEvent<HTMLButtonElement> | any) => {
+  const toggleAudio = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    setResetScratchCount(prev => prev + 1);
+    setResetScratchCount((prev: number) => prev + 1);
     setIsScratched(false);
 
     if (!audioRef.current) return;
@@ -215,7 +225,7 @@ export default function TeacherGiftApp() {
         }
       `}} />
 
-      {clicks.map((click) => (
+      {clicks.map((click: ClickEffect) => (
         <div key={click.id} className="fixed z-50 text-2xl click-animation" style={{ left: click.x, top: click.y }}>
           {click.emoji}
         </div>
@@ -223,7 +233,7 @@ export default function TeacherGiftApp() {
 
       {isScratched && (
         <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
-          {Array.from({ length: 60 }).map((_, i) => (
+          {Array.from({ length: 60 }).map((_: unknown, i: number) => (
             <div
               key={i}
               className="absolute text-2xl confetti-fall"
@@ -242,7 +252,7 @@ export default function TeacherGiftApp() {
 
       <div className="absolute inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-purple-950/30 to-[#020617]" />
-        {Array.from({ length: 30 }).map((_, i) => (
+        {Array.from({ length: 30 }).map((_: unknown, i: number) => (
           <div
             key={i}
             className="absolute bg-white rounded-full animate-pulse"
@@ -276,10 +286,10 @@ export default function TeacherGiftApp() {
             <h2 className="text-2xl font-bold text-pink-400 mb-4">Кішкене тест 👩🏻‍🏫</h2>
             <p className="text-base text-slate-300 mb-6">Болашақта оқушың дәптерін ұмытып келсе, не істейсің?</p>
             <div className="space-y-3">
-              {['Басыңды ұмытып келмедің бе? 🧐', 'Ештеңе етпейді, мә, мына параққа жаз 😇', 'Күнделікке екі! Ата-анаңды шақыр! 😈'].map((answer, index) => (
+              {['Басыңды ұмытып келмедің бе? 🧐', 'Ештеңе етпейді, мә, мына параққа жаз 😇', 'Күнделікке екі! Ата-анаңды шақыр! 😈'].map((answer: string, index: number) => (
                 <button
                   key={index}
-                  onClick={(e) => { e.stopPropagation(); setStage(2); }}
+                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); setStage(2); }}
                   className="w-full p-4 bg-slate-800/80 hover:bg-pink-950/60 text-pink-200 border border-pink-500/30 rounded-xl transition-all font-medium text-sm text-left shadow-md cursor-pointer"
                 >
                   {answer}
@@ -337,7 +347,7 @@ export default function TeacherGiftApp() {
             </div>
 
             <button 
-              onClick={(e) => { e.stopPropagation(); setShowSecret(true); }}
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); setShowSecret(true); }}
               className="mt-4 opacity-60 hover:opacity-100 transition-opacity cursor-pointer text-xs text-pink-300 flex items-center space-x-1"
             >
               <Sparkles className="w-3 h-3" />
