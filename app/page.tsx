@@ -78,7 +78,7 @@ const ScratchCard: React.FC<ScratchCardProps> = ({ onScratchComplete, resetTrigg
       
       const clearedPercentage = (clearPixels / totalPixels) * 100;
       
-      if (clearedPercentage > 80) {
+      if (clearedPercentage > 90) {
         isDone.current = true;
         onScratchComplete();
       }
@@ -366,7 +366,7 @@ export default function TeacherGiftApp() {
               className="mt-4 opacity-60 hover:opacity-100 transition-opacity cursor-pointer text-xs text-pink-300 flex items-center space-x-1"
             >
               <Sparkles className="w-3 h-3" />
-              <span>Құпия сюрприз ✨</span>
+              <span>Құпия ✨</span>
             </button>
           </div>
         )}
@@ -376,7 +376,7 @@ export default function TeacherGiftApp() {
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4">
           <div className="relative max-w-sm w-full bg-slate-900 border border-pink-500/50 rounded-3xl p-5 text-center flex flex-col items-center space-y-4 shadow-[0_0_50px_rgba(236,72,153,0.4)]">
             
-            <h3 className="text-xl font-bold text-pink-400">💖 Арнайы Сюрприз! 💖</h3>
+           {/* <h3 className="text-xl font-bold text-pink-400">💖 Кішігірім! 💖</h3> */}
 
             <div className="flex space-x-2 bg-slate-950 p-1 rounded-xl border border-pink-500/30 w-full">
               <button
@@ -397,7 +397,7 @@ export default function TeacherGiftApp() {
               </button>
             </div>
 
-<div className="w-full max-w-[260px] aspect-[9/16] rounded-2xl overflow-hidden border border-pink-500/40 bg-slate-950 flex items-center justify-center relative shadow-[0_0_20px_rgba(236,72,153,0.3)]">
+            <div className="w-full max-w-[260px] aspect-[9/16] rounded-2xl overflow-hidden border border-pink-500/40 bg-slate-950 flex items-center justify-center relative shadow-[0_0_20px_rgba(236,72,153,0.3)]">
               {secretTab === 'video' ? (
                 <video 
                   src="/Ayau.mp4" 
