@@ -78,7 +78,7 @@ const ScratchCard: React.FC<ScratchCardProps> = ({ onScratchComplete, resetTrigg
       
       const clearedPercentage = (clearPixels / totalPixels) * 100;
       
-      if (clearedPercentage > 82) {
+      if (clearedPercentage > 75) {
         isDone.current = true;
         onScratchComplete();
       }
