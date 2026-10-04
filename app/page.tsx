@@ -138,6 +138,14 @@ export default function TeacherGiftApp() {
     "Сен өте ақылдысың, бәрін беске жабасың! 📚"
   ];
 
+// Барлық 21 фотоны браузер жадына алдын ала жүктеп алу (Preload)
+  useEffect(() => {
+    for (let i = 1; i <= 21; i++) {
+      const img = new Image();
+      img.src = `/photos/${i}.png`;
+    }
+  }, []);
+
   useEffect(() => {
     if (stage === 0) {
       const interval = setInterval(() => {
