@@ -300,7 +300,7 @@ export default function TeacherGiftApp() {
             <h2 className="text-2xl font-bold text-pink-400 mb-4">Кішкене тест 👩🏻‍🏫</h2>
             <p className="text-base text-slate-300 mb-6">Болашақта оқушың дәптерін ұмытып келсе, не істейсің?</p>
             <div className="space-y-3">
-              {['Басыңды ұмытып келмедің бе? 🧐', 'Ештеңе етпейді, мә, мына параққа жаз 😇', 'Күнделікке екі! Ата-анаңды шақыр! 😈'].map((answer: string, index: number) => (
+              {['Басыңды ұмытып келмедің бе? ', 'Ештеңе етпейді, мә, мына параққа жаз ', 'Күнделікке екі! Ата-анаңды шақыр! '].map((answer: string, index: number) => (
                 <button
                   key={index}
                   onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); setStage(2); }}
